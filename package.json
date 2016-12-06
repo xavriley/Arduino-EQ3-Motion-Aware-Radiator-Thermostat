@@ -1,0 +1,14 @@
+{
+  "name": "eq3-server",
+  "version": "1.0.0",
+  "description": "Server to relay values from Arduino iBeacon to EQ3 Bluetooth Thermostat",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bleacon": "^0.5.1"
+  },
+  "author": "",
+  "license": "ISC"
+}
