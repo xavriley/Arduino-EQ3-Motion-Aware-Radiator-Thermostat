@@ -1,5 +1,7 @@
 # Motion aware Radiator Thermostat (TRV) Project
 
+[![Video Demo Here](https://img.youtube.com/vi/8pM-4RSM31o/0.jpg)](https://www.youtube.com/watch?v=8pM-4RSM31o)
+
 The project aims are to add intelligence to how we use radiator valves to heat rooms. Whilst Thermostatic Radiator Valves (TRVs) are mandated on all radiators by EU law, traditional designs rely on wax heating up and cooling down to open and close the valve. This is 2016 - we can do better! http://worrydream.com/ClimateChange/#consumption
 
 Whilst there are more complex approaches to connect all TRVs to a LAN that has a fine degree of control, I am testing a different approach which relies on Bluetooth Low Energy. The basic outline is that a motion sensor, combined with a temperature sensor measures whether an *occupied* room is too cold and if so, sends a boost signal to the radiator to warm up the room. This approach doesn't require fancy control systems and would likely improve on not heating rooms that are not used. By setting appropriate values for time lag (leaving the room for 5 minutes shouldn't switch off the boost for example) this could prove to be easy to configure and produce effective heat savings.
