@@ -4,7 +4,7 @@
 
 The project aims are to add intelligence to how we use radiator valves to heat rooms. Whilst Thermostatic Radiator Valves (TRVs) are mandated on all radiators by EU law, traditional designs rely on wax heating up and cooling down to open and close the valve. This is 2016 - we can do better! http://worrydream.com/ClimateChange/#consumption
 
-Whilst there are more complex approaches to connect all TRVs to a LAN that has a fine degree of control, I am testing a different approach which relies on Bluetooth Low Energy. The basic outline is that a motion sensor, combined with a temperature sensor measures whether an *occupied* room is too cold and if so, sends a boost signal to the radiator to warm up the room. This approach doesn't require fancy control systems and would likely improve on not heating rooms that are not used. By setting appropriate values for time lag (leaving the room for 5 minutes shouldn't switch off the boost for example) this could prove to be easy to configure and produce effective heat savings.
+Whilst there are more complex approaches to connect all TRVs to a LAN that allow a fine degree of control, I am testing a different approach which relies on Bluetooth Low Energy. The basic outline is that a motion sensor, combined with a temperature sensor measures whether an *occupied* room is too cold and if so, sends a boost signal to the radiator to warm up the room. This approach doesn't require fancy control systems and would likely improve on not heating rooms that are not used. By setting appropriate values for time lag (leaving the room for 5 minutes shouldn't switch off the boost for example) this could prove to be easy to configure and produce effective heat savings.
 
 This project has three main components
 
@@ -94,7 +94,11 @@ To setup the HM10 in central mode required sending various AT commands via a ser
 
 After establishing this connection all subsequent communications should be forwarded onto the peripheral device (EQ3 in this case).
 
-From the packet trace on the RPi I could see that the connection was established, the connection handle exchanged and it all looked good. However, *on sending any information to the peripheral* the data was sent using the "Write Response Attribute" handle (`0x13`). This made no sense - it effectively means that the HM10 was treating any request as if it had received a write request and was responding with some data (inputted by me from the serial connection). There was no way to change this handle which meant there was no way to effectively use peripherals directly. The firmware is broken and this was a frustrating waste of time to say the least...
+From the packet trace on the RPi I could see that the connection was established, the connection handle exchanged and it all looked good. However, *on sending any information to the peripheral* the data was sent using the "Write Response Attribute" handle (`0x13`).
+
+![Screenshot of Packet Logger on OSX](https://www.dropbox.com/s/i2bajwj3e83sqez/Screenshot%202016-12-07%2014.15.37.png?dl=1)
+
+This made no sense - it effectively means that the HM10 was treating any request as if it had received a write request and was responding with some data (inputted by me from the serial connection). There was no way to change this handle which meant there was no way to effectively use peripherals directly. The firmware is broken and this was a frustrating waste of time to say the least...
 
 ### A different approach
 
