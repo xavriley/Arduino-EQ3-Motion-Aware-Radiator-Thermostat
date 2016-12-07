@@ -115,3 +115,116 @@ In writing the node script I did run into lots of issues where the Bluetooth don
 Whilst the HM10 was for the most part a giant waste of time, the iBeacon approach that I ended up with does have some advantages. Firstly it is very simple - it is easy to imagine a system where (too cold + motion detected) could be generalised into a useful data beacon. Secondly it is extremely power efficient - iBeacon devices are designed to last for years on a single button battery. With a view to a finished product, this freedom would be attractive from a consumer perspective. Finally, allowing for a generic and more simple sensor desgin means that it can be decoupled from particular implementations - this is an issue that other smart TRV initiatives have run into - so there's no reason why the RPi couldn't talk to a Nest Thermostat over Wifi for example.
 
 The downsides - temperature is not currently adjustable without recompiling the Arduino code(!). The Raspberry Pi is arguably redundant - having the sensor be able to trigger the boost would be more elegant. More elegant still would be motion detection built into the EQ3 itself, but the positioning of valves often means that this would be undesirable  and wouldn't pick up the motion effectively from the room.
+
+## Arduino Sketch
+
+```
+/*
+ * Motion aware thermostat (RoomTooCold)
+ */
+#include <SoftwareSerial.h>
+
+SoftwareSerial bluetooth(2, 3);
+
+int tempSensorPin = 0;
+int inputPin = 4;               // choose the input pin (for PIR sensor)
+int pirState = LOW;             // we start, assuming no motion detected
+int val = 0;                    // variable for reading the pin status
+
+float targetTemperature = 20.0;
+
+void logOutput() {
+  while (bluetooth.available()) {
+    Serial.write(bluetooth.read());
+  }
+  Serial.println("");
+}
+
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);      // declare LED as output
+  pinMode(inputPin, INPUT);     // declare sensor as input
+
+  Serial.begin(9600);
+  bluetooth.begin(9600);
+
+  // wait for Serial to be ready
+  while(!Serial){}
+
+  bluetooth.print("AT+RENEW"); // should return OK
+  delay(5000);
+
+  bluetooth.print("AT+MARJ0x1000"); // set Major version to 0x1000
+  delay(100);
+  bluetooth.print("AT+MINO0x0101"); // set Minor version to 0x0101
+  delay(100);
+  bluetooth.print("AT+ADVI4"); // set advertising interval 5 seconds
+  delay(100);
+  bluetooth.print("AT+NAMETCHKR"); // set name to TCHKR
+  delay(100);
+  bluetooth.print("AT+IBEA1"); // enable iBeacon mode
+  delay(100);
+  bluetooth.print("AT+DELO2"); // broadcast only to save power
+  delay(100);
+  //mySerial.print("AT+PWRM1"); // additional power management if needed
+  //delay(100);
+  bluetooth.print("AT+RESET"); // Let above settings take effect
+  delay(500);
+
+  logOutput();
+}
+
+float getTemperature() {
+   //getting the voltage reading from the temperature sensor
+ int reading = analogRead(tempSensorPin);
+
+ // converting that reading to voltage, for 3.3v arduino use 3.3
+ float voltage = reading * 5.0;
+ voltage /= 1024.0;
+
+ float temperatureC = (voltage - 0.5) * 100 ;
+
+ return temperatureC;
+}
+
+boolean motionDetected() {
+  val = digitalRead(inputPin);  // read input value
+  return val == HIGH;           // check if the input is HIGH
+}
+
+boolean roomTooCold() {
+  return getTemperature() < targetTemperature;
+}
+
+void loop(){
+
+  if (motionDetected() && roomTooCold()) {
+    digitalWrite(LED_BUILTIN, HIGH);  // turn LED ON
+    if (pirState == LOW) {
+      // we have just turned on
+      Serial.println("Motion detected!");
+
+      // broadcast different minor version for BLE beacon
+      // signals that room is too cold
+      bluetooth.print("AT+MINO0x0102");
+      logOutput();
+
+      // We only want to print on the output change, not state
+      pirState = HIGH;
+    }
+  } else {
+    digitalWrite(LED_BUILTIN, LOW); // turn LED OFF
+    if (pirState == HIGH){
+      // we have just turned off
+      Serial.println("Motion ended!");
+
+      // broadcast original minor version for BLE beacon
+      // signals that room is too warm
+      bluetooth.print("AT+MINO0x0101");
+      logOutput();
+
+      // We only want to print on the output change, not state
+      pirState = LOW;
+    }
+  }
+}
+```
